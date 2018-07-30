@@ -52,12 +52,13 @@ public class ControllerManager : MonoBehaviour {
             GrabOrReleaseObject();
 
         }
-
         // 5
         if (Controller.GetPressUp(SteamVR_Controller.ButtonMask.Grip))
         {
             Debug.Log(gameObject.name + " Grip Release");
         }
+        
+
     }
 
     private void OnTriggerEnter(Collider other)
@@ -91,6 +92,10 @@ public class ControllerManager : MonoBehaviour {
             {
                 GrabGrip(currentGrabbedObject);
             }
+            else if (currentGrabbedObject.tag == "MainHand")
+            {
+                GrabWeapon(currentGrabbedObject);
+            }
         }
         else if (currentGrabbedObject != null)
         {
@@ -98,23 +103,40 @@ public class ControllerManager : MonoBehaviour {
             {
                 ReleaseGrip(currentGrabbedObject);
             }
-            currentGrabbedObject = null;
+            else if (currentGrabbedObject.tag == "MainHand")
+            {
+                ReleaseWeapon(currentGrabbedObject);
+            }
         }
 
 
     }
     void GrabGrip(GameObject grip)
     {
-        grip.gameObject.GetComponentInParent<EquipController>().gripController = this.gameObject;
-        grip.gameObject.GetComponentInParent<EquipController>().isGripped = true;
+        EquipController eQ = grip.GetComponentInParent<EquipController>();
+        eQ.gripController = this.gameObject;
+        eQ.isGripped = true;
     }
 
-    void ReleaseGrip(GameObject grip)
+   public void ReleaseGrip(GameObject grip)
     {
-        grip.gameObject.GetComponentInParent<EquipController>().gripController = null;
-        grip.gameObject.GetComponentInParent<EquipController>().isGripped = false;
+        EquipController eQ = grip.GetComponentInParent<EquipController>();
+        eQ.gripController = null;
+        eQ.isGripped = false;
+        currentGrabbedObject = null;
     }
-
+    void GrabWeapon(GameObject weapon)
+    {
+        EquipController eQ = weapon.GetComponentInParent<EquipController>();
+        eQ.mainHandController = this.gameObject;
+        eQ.isEquipped = true;
+        eQ.isGripped = false;
+        eQ.gripController = null;
+    }
+    void ReleaseWeapon(GameObject weapon)
+    {
+        currentGrabbedObject = null;
+    }
 
 
 }
