@@ -17,6 +17,8 @@ public class ControllerManager : MonoBehaviour {
     [SerializeField]
     GameObject currentGrabbedObject = null;
 
+    public GameObject cameraRig;
+
 
     void Awake()
     {
@@ -57,7 +59,16 @@ public class ControllerManager : MonoBehaviour {
         {
             Debug.Log(gameObject.name + " Grip Release");
         }
-        
+
+        if (Controller.GetPressDown(SteamVR_Controller.ButtonMask.ApplicationMenu))
+        {
+            StartLocomotion();
+        }
+        if (Controller.GetPressUp(SteamVR_Controller.ButtonMask.ApplicationMenu))
+        {
+            EndLocomotion();
+        }
+
 
     }
 
@@ -138,5 +149,14 @@ public class ControllerManager : MonoBehaviour {
         currentGrabbedObject = null;
     }
 
+    void StartLocomotion()
+    {
+        cameraRig.GetComponent<LocomotionController>().StartLocomotion(this.gameObject);
+    }
+
+    void EndLocomotion()
+    {
+        cameraRig.GetComponent<LocomotionController>().EndLocomotion(this.gameObject);
+    }
 
 }
