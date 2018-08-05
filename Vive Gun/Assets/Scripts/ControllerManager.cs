@@ -151,12 +151,12 @@ public class ControllerManager : MonoBehaviour {
 
     void StartLocomotion()
     {
-        cameraRig.GetComponent<LocomotionController>().StartLocomotion(this.gameObject);
+        cameraRig.GetComponent<Locomotion>().StartLocomotion(this.gameObject);
     }
 
     void EndLocomotion()
     {
-        cameraRig.GetComponent<LocomotionController>().EndLocomotion(this.gameObject);
+        cameraRig.GetComponent<Locomotion>().EndLocomotion(this.gameObject);
     }
 
 }

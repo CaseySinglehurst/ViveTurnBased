@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LocomotionController : MonoBehaviour {
+public class Locomotion : MonoBehaviour {
 
 
     public float  currentStamina, maxStamina;
 
     LineRenderer lr;
+
+    [Header("Reference Objects")]
     public GameObject head;
     GameObject locomotionController;
 
@@ -15,14 +17,19 @@ public class LocomotionController : MonoBehaviour {
     Vector3 movePoint;
 
     public GameObject moveIndicator;
-
-    [SerializeField]
+    MeshRenderer moveIndicatorRenderer;
+    
     bool canMove = false;
+
+    [Header("Move Indicator Materials")]
+    public Material canMoveMaterial;
+    public Material cantMoveMaterial;
 
 
 	// Use this for initialization
 	void Start () {
         lr = GetComponent<LineRenderer>();
+        moveIndicatorRenderer = moveIndicator.GetComponent<MeshRenderer>();
 	}
 	
 	// Update is called once per frame
@@ -33,6 +40,10 @@ public class LocomotionController : MonoBehaviour {
             if (currentStamina > maxStamina){
                 currentStamina = maxStamina;
             }
+            if (currentStamina < 0)
+            {
+                currentStamina = 0;
+            }
         }
 
         if (locomotionController != null)
@@ -40,15 +51,27 @@ public class LocomotionController : MonoBehaviour {
             Vector3 rayDirection = locomotionController.transform.TransformDirection(Vector3.forward);
             RaycastHit hit;
             Debug.DrawRay(locomotionController.transform.position, rayDirection);
-            if (Physics.Raycast(locomotionController.transform.position, rayDirection, out hit, 100, 1 << LayerMask.NameToLayer("Walkable")))
+            if (Physics.Raycast(locomotionController.transform.position, rayDirection, out hit, 100, 1 << LayerMask.NameToLayer("Surface")))
             {
-                canMove = true;
+                moveIndicator.SetActive(true);
+
+                lr.enabled = true;
+                if (hit.transform.tag == "Floor")
+                {
+                    canMove = true;
+                    movePoint = GetNearest(hit.point);
+                    moveIndicatorRenderer.material = canMoveMaterial;
+                }
+                else
+                {
+                    canMove = false;
+                    movePoint = hit.point;
+                    moveIndicatorRenderer.material = cantMoveMaterial;
+
+                }
                 lr.positionCount = 2;
                 lr.SetPosition(0, locomotionController.transform.position);
                 lr.SetPosition(1, hit.point);
-                movePoint = GetNearest(hit.point);
-                moveIndicator.SetActive(true);
-                lr.enabled = true;
             }
             else
             {
@@ -90,8 +113,7 @@ public class LocomotionController : MonoBehaviour {
     {
         if (canMove)
         {
-            Debug.Log("TELEPORTED");
-            currentStamina -= ( (movePoint - new Vector3(head.transform.position.x, 0, head.transform.position.z)) - transform.position).magnitude;
+            currentStamina -= ( (movePoint + new Vector3(head.transform.position.x, 0, head.transform.position.z)) - transform.position).magnitude;
             Vector3 transformOffset = transform.position - head.transform.position;
 
             transform.position = movePoint + new Vector3(transformOffset.x, 0, transformOffset.z);
