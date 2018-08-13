@@ -4,16 +4,18 @@ using UnityEngine;
 
 public class EquipController : MonoBehaviour {
 
+    public Gun equippedGun;
+    public GameObject currentGun;
     public GameObject mainHandController; 
 
     public bool isEquipped = true;
 
     float objectMoveSpeed = 20;
-
-    public Vector3  holdRotationOffset; // rotation of guns hold position I.E you hold a wand straight but a sniper rifle at 45 degrees
-
-    public GameObject grip; // position of the available secondary holding spot
-    public GameObject gripController; // controller that is currently holding the grip
+    
+    // position of the available secondary holding spot
+    GameObject grip;
+    // controller that is currently holding the grip
+    public GameObject gripController;
 
     public bool isGripped = false;
 
@@ -21,12 +23,19 @@ public class EquipController : MonoBehaviour {
     // Use this for initialization
     void Start()
     {
-        if (transform.position.magnitude >= grip.transform.position.magnitude)
+
+        currentGun = Instantiate(equippedGun.gunPrefab, this.transform);
+        grip = GetChildWithTag(currentGun, "Grip");
+        //if (transform.position.magnitude >= grip.transform.position.magnitude)
+
+        if (grip.transform.localPosition.z >= 0)
         {
+            Debug.Log("grip is forward");
             gripForward = true;
         }
         else
         {
+            Debug.Log("Grip is backward");
             gripForward = false;
         }
         
@@ -36,27 +45,31 @@ public class EquipController : MonoBehaviour {
     {
         if (isEquipped)
         {
-            transform.position = Vector3.Lerp(transform.position, mainHandController.transform.position, objectMoveSpeed * Time.deltaTime); // move towards main hand position#
-            
-            if (isGripped) // we want to rotate towards the off hand grip
+            // move towards main hand position
+            transform.position = Vector3.Lerp(transform.position, mainHandController.transform.position, objectMoveSpeed * Time.deltaTime);
+            // we want to rotate towards the off hand grip
+            if (isGripped) 
             {
                 Vector3 lookAtPosition = new Vector3();
                 if (gripForward)
                 {
-                    lookAtPosition = gripController.transform.position - transform.position; // get the vector from main hand to off hand
+                    // get the vector from main hand to off hand
+                    lookAtPosition = gripController.transform.position - transform.position; 
                 }
                 else
                 {
-                    lookAtPosition = transform.position - gripController.transform.position; // get the vector from main hand to off hand
+                    // get the vector from main hand to off hand
+                    lookAtPosition = transform.position - gripController.transform.position; 
                 }
-                
-                Quaternion lookRotation = Quaternion.LookRotation(lookAtPosition); // get a rotation through that vector (only rotates x and y directions)
-                lookRotation = Quaternion.Euler(lookRotation.eulerAngles.x, lookRotation.eulerAngles.y, mainHandController.transform.rotation.eulerAngles.z); // rotate z to be the same as main hand controller 
+                // get a rotation through that vector (only rotates x and y directions)
+                Quaternion lookRotation = Quaternion.LookRotation(lookAtPosition);
+                // rotate z to be the same as main hand controller 
+                lookRotation = Quaternion.Euler(lookRotation.eulerAngles.x, lookRotation.eulerAngles.y, mainHandController.transform.rotation.eulerAngles.z); 
                 transform.rotation = Quaternion.Lerp(transform.rotation, lookRotation, objectMoveSpeed * Time.deltaTime);
             }
             else // we want to follow the position and rotation of the main hand only
             {
-                Quaternion holdRotation = mainHandController.transform.rotation * Quaternion.Euler(holdRotationOffset);
+                Quaternion holdRotation = mainHandController.transform.rotation * Quaternion.Euler(equippedGun.holdRotationOffset);
                 transform.rotation = Quaternion.Lerp(transform.rotation, holdRotation, objectMoveSpeed * Time.deltaTime);
             }
 
@@ -69,12 +82,29 @@ public class EquipController : MonoBehaviour {
 
     }
     
+    //if off hand is a certain distance away from the secondary frib, release that grip (for easy un-gripping)
     void CheckIfStillHoldingGrip()
     {
+        
         if (Mathf.Abs((grip.transform.position - gripController.transform.position).magnitude) >= .35f)
         {
             gripController.GetComponent<ControllerManager>().ReleaseGrip(grip);
         }
+    }
+
+
+    GameObject GetChildWithTag(GameObject parent, string tag)
+    {
+
+        foreach(Transform t in parent.transform)
+        {
+            if (t.tag == tag)
+            {
+                return t.gameObject;
+            }
+        }
+
+        return null;
     }
 
     }

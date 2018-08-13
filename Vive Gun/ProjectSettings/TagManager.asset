@@ -8,6 +8,8 @@ TagManager:
   - MainHand
   - projectile
   - Floor
+  - Rail
+  - Attachment
   layers:
   - Default
   - TransparentFX

@@ -6,11 +6,13 @@ public class Locomotion : MonoBehaviour {
 
 
     public float  currentStamina, maxStamina;
-
+    // line renderer that shows player where the controller is pointing when moving
     LineRenderer lr;
 
     [Header("Reference Objects")]
+    //where the vive headset is
     public GameObject head;
+    // current controller that is pressing the movement button
     GameObject locomotionController;
 
     float moveDistance;
@@ -34,6 +36,7 @@ public class Locomotion : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+        // regen stamina over time
         if (currentStamina < maxStamina)
         {
             currentStamina += Time.deltaTime;
@@ -48,13 +51,13 @@ public class Locomotion : MonoBehaviour {
 
         if (locomotionController != null)
         {
+            //create a raycast form the controller to where the controller is pointing
             Vector3 rayDirection = locomotionController.transform.TransformDirection(Vector3.forward);
             RaycastHit hit;
             Debug.DrawRay(locomotionController.transform.position, rayDirection);
-            if (Physics.Raycast(locomotionController.transform.position, rayDirection, out hit, 100, 1 << LayerMask.NameToLayer("Surface")))
+            if (Physics.Raycast(locomotionController.transform.position, rayDirection, out hit, 100, 1 << LayerMask.NameToLayer("Surface"))) // surface applies to any object on the floor plane
             {
                 moveIndicator.SetActive(true);
-
                 lr.enabled = true;
                 if (hit.transform.tag == "Floor")
                 {
@@ -86,16 +89,17 @@ public class Locomotion : MonoBehaviour {
         }
 
 }
-
+    // when player presses movement button on a controller
     public void StartLocomotion(GameObject startingController)
     {
+        //if player isnt already using a movement button
         if (locomotionController == null)
         {
             locomotionController = startingController;
             
         }
     }
-
+    // happens when player releases movement button on a controller
     public void EndLocomotion(GameObject endingController)
     {
         if (locomotionController == endingController)
@@ -113,16 +117,20 @@ public class Locomotion : MonoBehaviour {
     {
         if (canMove)
         {
+            //subtract stamina relative to how far player has moved
             currentStamina -= ( (movePoint + new Vector3(head.transform.position.x, 0, head.transform.position.z)) - transform.position).magnitude;
+            //get the offset between the rig and the headset
             Vector3 transformOffset = transform.position - head.transform.position;
-
+            // move player so the headset is where the player pointed to, not the rig
             transform.position = movePoint + new Vector3(transformOffset.x, 0, transformOffset.z);
         }
     }
 
+
+    // get the nearest point that the player can move to in regards to where the player is pointing to
+    //(if player doesnt have enough stamina to reach a point, they can still move some distance towards it)
     Vector3 GetNearest(Vector3 target)
     {
-
         float targetDistance = (target - new Vector3(head.transform.position.x, 0, head.transform.position.z)).magnitude;
 
         if (targetDistance <= currentStamina)

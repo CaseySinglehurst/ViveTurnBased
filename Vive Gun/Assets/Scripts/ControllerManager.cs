@@ -17,6 +17,8 @@ public class ControllerManager : MonoBehaviour {
     [SerializeField]
     GameObject currentGrabbedObject = null;
 
+    GameObject currentHoldingObject = null;
+
     public GameObject cameraRig;
 
 
@@ -31,25 +33,40 @@ public class ControllerManager : MonoBehaviour {
         // 1
         if (Controller.GetAxis() != Vector2.zero)
         {
-            Debug.Log(gameObject.name + Controller.GetAxis());
+           // Debug.Log(gameObject.name + Controller.GetAxis());
         }
 
         // 2
         if (Controller.GetHairTriggerDown())
         {
-            Debug.Log(gameObject.name + " Trigger Press");
+
+            if (currentCollidingObject != null)
+            {
+                if (currentCollidingObject.tag == "Attachment")
+                {
+                    //Debug.Log(gameObject.name + " Trigger Press");
+                    GrabAttachment(currentCollidingObject);
+                }
+            }
         }
 
         // 3
         if (Controller.GetHairTriggerUp())
         {
             Debug.Log(gameObject.name + " Trigger Release");
+            if (currentHoldingObject != null)
+            {
+                if (currentHoldingObject.tag == "Attachment")
+                {
+                    ReleaseAttachment(currentHoldingObject);
+                }
+            }
         }
 
         // 4
         if (Controller.GetPressDown(SteamVR_Controller.ButtonMask.Grip))
         {
-            Debug.Log(gameObject.name + " Grip Press");
+           // Debug.Log(gameObject.name + " Grip Press");
 
             GrabOrReleaseObject();
 
@@ -57,7 +74,7 @@ public class ControllerManager : MonoBehaviour {
         // 5
         if (Controller.GetPressUp(SteamVR_Controller.ButtonMask.Grip))
         {
-            Debug.Log(gameObject.name + " Grip Release");
+            //Debug.Log(gameObject.name + " Grip Release");
         }
 
         if (Controller.GetPressDown(SteamVR_Controller.ButtonMask.ApplicationMenu))
@@ -79,7 +96,7 @@ public class ControllerManager : MonoBehaviour {
             currentCollidingObject = other.gameObject;
         }
     }
-    private void OnTriggerstay(Collider other)
+    private void OnTriggerStay(Collider other)
     {
         if (currentCollidingObject == null)
         {
@@ -101,6 +118,7 @@ public class ControllerManager : MonoBehaviour {
             currentGrabbedObject = currentCollidingObject;
             if (currentGrabbedObject.tag == "Grip")
             {
+                Debug.Log("Grabbing grip");
                 GrabGrip(currentGrabbedObject);
             }
             else if (currentGrabbedObject.tag == "MainHand")
@@ -131,6 +149,7 @@ public class ControllerManager : MonoBehaviour {
 
    public void ReleaseGrip(GameObject grip)
     {
+        Debug.Log("Releasing Grip");
         EquipController eQ = grip.GetComponentInParent<EquipController>();
         eQ.gripController = null;
         eQ.isGripped = false;
@@ -157,6 +176,20 @@ public class ControllerManager : MonoBehaviour {
     void EndLocomotion()
     {
         cameraRig.GetComponent<Locomotion>().EndLocomotion(this.gameObject);
+    }
+
+    void GrabAttachment(GameObject at)
+    {
+        Attachment attachment = at.GetComponent<Attachment>();
+        currentHoldingObject = at;
+        attachment.PickUp(this.gameObject);
+    }
+
+    void ReleaseAttachment(GameObject at)
+    {
+        Attachment attachment = at.GetComponent<Attachment>();
+        currentHoldingObject = null;
+        attachment.LetGo();
     }
 
 }
