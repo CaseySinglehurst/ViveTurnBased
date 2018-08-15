@@ -38,7 +38,8 @@ public class Attachment : MonoBehaviour {
             }
             else
             {
-                transform.position = attachedRail.transform.position;
+                // grip model is rails closest point
+                transform.position = attachedRail.GetComponent<Rail>().GetClosestPointOnRail(controller.transform.position);
                 transform.rotation = attachedRail.transform.rotation;
             }
         }
@@ -52,7 +53,8 @@ public class Attachment : MonoBehaviour {
             {
                 isOnRail = true;
                 attachedRail = other.gameObject;
-                gripModel.transform.position = other.transform.position;
+                // grip model is rails closest point
+                gripModel.transform.position = other.GetComponent<Rail>().GetClosestPointOnRail(controller.transform.position);
                 gripModel.transform.rotation = other.transform.rotation;
             }
         }
@@ -62,8 +64,8 @@ public class Attachment : MonoBehaviour {
     public void AttatchToRail()
     {
         isAttached = true;
-        transform.position = attachedRail.transform.position;
-        transform.rotation = attachedRail.transform.rotation;
+        transform.position = gripModel.transform.position;
+        transform.rotation = gripModel.transform.rotation;
         gripModel.transform.position = transform.position;
         gripModel.transform.rotation = transform.rotation;
         transform.SetParent(attachedRail.transform);
@@ -73,7 +75,7 @@ public class Attachment : MonoBehaviour {
     {
         isAttached = false;
         isOnRail = false;
-        attachedRail.transform.DetachChildren();
+        transform.parent = null;
         attachedRail = null;
     }
 
@@ -98,5 +100,7 @@ public class Attachment : MonoBehaviour {
         }
         controller = null;
     }
+
+    
 
 }
